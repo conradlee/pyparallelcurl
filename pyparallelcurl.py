@@ -56,12 +56,17 @@ class ParallelCurl:
     outstanding_requests = {}
     multi_handle = None
     
-    def __init__(self, in_max_requests = 10, in_options = {}):
+    def __init__(self, in_max_requests = 10, in_options = {}, max_requests_per_second = 5):
         self.max_requests = in_max_requests
         self.options = in_options
         
         self.outstanding_requests = {}
         self.multi_handle = pycurl.CurlMulti()
+
+        # Variables for rate limiting
+        self.max_requests_per_second = max_requests_per_second
+        self.last_used_second = 0
+        self.requests_this_second = 0
     
     # Ensure all the requests finish nicely
     def __del__(self):
@@ -97,7 +102,13 @@ class ParallelCurl:
             ch.setopt(pycurl.POSTFIELDS, post_fields)
         
         self.multi_handle.add_handle(ch)
-        
+
+        if int(time.time()) == self.last_used_second:
+            self.requests_this_second += 1
+        else:
+            self.last_used_second = int(time.time())
+            self.requests_this_second = 1
+
         self.outstanding_requests[ch] = {
             'handle': ch,
             'result_buffer': result_buffer,
@@ -170,10 +181,17 @@ class ParallelCurl:
                 break
     
     # Blocks until there's less than the specified number of requests outstanding
-    def waitforoutstandingrequeststodropbelow(self, max):
+    def waitforoutstandingrequeststodropbelow(self, max_simultaneous, max_per_second):
         while True:
+            
+            if self.requests_this_second > max_per_second:
+                while int(time.time()) == self.last_used_second:
+                    time.sleep(0.01)
+                self.requests_this_second = 0
+                self.last_used_second = int(time.time())
+
             self.checkforcompletedrequests()
-            if len(self.outstanding_requests) < max:
+            if len(self.outstanding_requests) < max_simultaneous:
             	break
             
             time.sleep(0.01)
