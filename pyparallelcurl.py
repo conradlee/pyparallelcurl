@@ -56,7 +56,7 @@ class ParallelCurl:
     outstanding_requests = {}
     multi_handle = None
     
-    def __init__(self, in_max_requests = 10, in_options = {}, max_requests_per_second = 5):
+    def __init__(self, in_max_requests = 10, in_options = {}, max_requests_per_second = 1):
         self.max_requests = in_max_requests
         self.options = in_options
         
@@ -184,7 +184,7 @@ class ParallelCurl:
     def waitforoutstandingrequeststodropbelow(self, max_simultaneous, max_per_second):
         while True:
             
-            if self.requests_this_second > max_per_second:
+            if self.requests_this_second >= max_per_second:
                 while int(time.time()) == self.last_used_second:
                     time.sleep(0.01)
                 self.requests_this_second = 0
