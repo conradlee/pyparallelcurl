@@ -27,8 +27,9 @@ def on_request_done(content, url, ch, search):
         print "Fetch error "+str(httpcode)+" for '"+url+"'"
         return
     
+
     responseobject = json.loads(content)
-    if 'responseData' not in responseobject or 'results' not in responseobject['responseData']:
+    if 'responseData' not in responseobject or not responseobject['responseData'] or 'results' not in responseobject['responseData']:
         print "No results found for '"+search+"'"
         return
     
