@@ -122,7 +122,7 @@ class ParallelCurl:
     # You *MUST* call this function at the end of your script. It waits for any running requests
     # to complete, and calls their callback functions
     def finishallrequests(self):
-        self.waitforoutstandingrequeststodropbelow(1)
+        self.waitforoutstandingrequeststodropbelow(1, self.max_requests_per_second)
     
     # Checks to see if any of the outstanding requests have finished
     def checkforcompletedrequests(self):
