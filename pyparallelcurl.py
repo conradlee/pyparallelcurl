@@ -88,7 +88,7 @@ class ParallelCurl:
     def startrequest(self, url, callback, user_data = {}, post_fields=None):
         
         if self.max_requests > 0:
-            self.waitforoutstandingrequeststodropbelow(self.max_requests)
+            self.waitforoutstandingrequeststodropbelow(self.max_requests, self.max_requests_per_second)
     
         ch = pycurl.Curl()
         for option, value in self.options.items():
